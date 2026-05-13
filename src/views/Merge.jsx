@@ -74,7 +74,7 @@ export default function Merge({ onBack }) {
 
       <div className="card">
         <div className="card-actions">
-          <button onClick={pickFiles} className="btn-primary">+ Add PDFs</button>
+          <button onClick={pickFiles} className="btn-primary">+ Upload</button>
           {files.length > 0 && (
             <button onClick={clearAll} className="btn-ghost">Clear all</button>
           )}

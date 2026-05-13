@@ -83,7 +83,7 @@ export default function Split({ onBack }) {
       <div className="card">
         <div className="card-actions">
           <button onClick={pickFile} className="btn-primary" disabled={busy}>
-            {file ? "Change PDF" : "Pick PDF"}
+            {file ? "Change PDF" : "Upload"}
           </button>
           {file && (
             <button onClick={clearAll} className="btn-ghost">Clear</button>

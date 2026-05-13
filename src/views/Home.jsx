@@ -3,8 +3,8 @@ export default function Home({ onSelect }) {
     <div className="container">
       <div className="header">
         <div className="logo">⬡</div>
-        <h1>PDF Tools</h1>
-        <p className="subtitle">Offline — nothing leaves your machine</p>
+        <h1>EZ-pdf</h1>
+        <p className="subtitle">Fully Offline PDF Editor</p>
       </div>
 
       <div className="home-grid">
