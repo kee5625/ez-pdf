@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { ArrowLeft, FilePlus, X, Download, Loader2 } from "lucide-react";
+
+function timestamp() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}${String(d.getSeconds()).padStart(2,"0")}`;
+}
 
 export default function Merge({ onBack }) {
   const [files, setFiles] = useState([]);
@@ -54,8 +60,9 @@ export default function Merge({ onBack }) {
   }
 
   async function download() {
+    const filename = `ez-pdf_merged-${files.length}files_${timestamp()}.pdf`;
     try {
-      const name = await invoke("download_pdf", { path: outputPath });
+      const name = await invoke("download_file", { path: outputPath, filename });
       setDownloadedName(name);
     } catch (e) {
       setErrorMsg(String(e));
@@ -67,14 +74,18 @@ export default function Merge({ onBack }) {
   return (
     <div className="container">
       <div className="header">
-        <button className="btn-back" onClick={onBack}>← Back</button>
+        <button className="btn-back" onClick={onBack}>
+          <ArrowLeft size={14} /> Back
+        </button>
         <h1>Merge PDFs</h1>
         <p className="subtitle">Combine multiple PDFs into one</p>
       </div>
 
       <div className="card">
         <div className="card-actions">
-          <button onClick={pickFiles} className="btn-primary">+ Upload</button>
+          <button onClick={pickFiles} className="btn-primary">
+            <FilePlus size={15} /> Upload
+          </button>
           {files.length > 0 && (
             <button onClick={clearAll} className="btn-ghost">Clear all</button>
           )}
@@ -88,9 +99,10 @@ export default function Merge({ onBack }) {
           <ul className="file-list">
             {files.map((f, i) => (
               <li key={i} className="file-item">
-                <span className="file-icon">📄</span>
                 <span className="file-name" title={f}>{basename(f)}</span>
-                <button onClick={() => removeFile(i)} className="btn-remove" title="Remove">✕</button>
+                <button onClick={() => removeFile(i)} className="btn-remove" title="Remove">
+                  <X size={13} />
+                </button>
               </li>
             ))}
           </ul>
@@ -104,7 +116,7 @@ export default function Merge({ onBack }) {
       {files.length >= 2 && status !== "done" && (
         <button onClick={merge} className="btn-merge" disabled={status === "merging"}>
           {status === "merging"
-            ? <span className="spinner-row"><span className="spinner" />Merging…</span>
+            ? <span className="spinner-row"><Loader2 size={15} className="spin" /> Merging…</span>
             : `Merge ${files.length} PDFs`}
         </button>
       )}
@@ -120,10 +132,14 @@ export default function Merge({ onBack }) {
           ) : (
             <>
               <p className="success-msg">Merge complete — ready to download.</p>
-              <button onClick={download} className="btn-download">↓ Download to Downloads folder</button>
+              <button onClick={download} className="btn-download">
+                <Download size={15} /> Download to Downloads folder
+              </button>
             </>
           )}
-          <button onClick={clearAll} className="btn-ghost" style={{ marginTop: "0.5rem" }}>Start over</button>
+          <button onClick={clearAll} className="btn-ghost" style={{ marginTop: "0.5rem" }}>
+            Start over
+          </button>
         </div>
       )}
     </div>
