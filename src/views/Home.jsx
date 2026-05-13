@@ -1,3 +1,5 @@
+import { Combine, Scissors } from "lucide-react";
+
 export default function Home({ onSelect }) {
   return (
     <div className="container">
@@ -9,13 +11,13 @@ export default function Home({ onSelect }) {
 
       <div className="home-grid">
         <button className="home-card" onClick={() => onSelect("merge")}>
-          <span className="home-card-icon">⊕</span>
+          <Combine size={32} className="home-card-icon" />
           <span className="home-card-title">Merge PDFs</span>
           <span className="home-card-desc">Combine multiple PDFs into one file</span>
         </button>
 
         <button className="home-card" onClick={() => onSelect("split")}>
-          <span className="home-card-icon">✂</span>
+          <Scissors size={32} className="home-card-icon" />
           <span className="home-card-title">Split PDF</span>
           <span className="home-card-desc">Extract specific pages from a PDF</span>
         </button>
