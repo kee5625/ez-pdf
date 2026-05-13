@@ -3,6 +3,8 @@ import json
 import os
 import tempfile
 import uuid
+import io
+import zipfile
 from datetime import datetime
 
 LOG_DIR = os.path.join(tempfile.gettempdir(), "pdf-merger")
@@ -28,6 +30,7 @@ def ok(**kwargs):
 
 
 def parse_page_range(page_str: str, total: int) -> list[int]:
+    """Return sorted 0-indexed page list from a string like '1-3, 5, 7-10'."""
     pages = set()
     for part in page_str.split(","):
         part = part.strip()
@@ -42,7 +45,7 @@ def parse_page_range(page_str: str, total: int) -> list[int]:
                 die(f"Invalid range: '{part}'")
             if start < 1 or end > total or start > end:
                 die(f"Range {start}-{end} out of bounds (PDF has {total} pages)")
-            pages.update(range(start - 1, end))  # 0-indexed
+            pages.update(range(start - 1, end))
         else:
             try:
                 p = int(part)
@@ -104,7 +107,7 @@ def cmd_info(filepath: str):
     ok(pages=count)
 
 
-def cmd_split(filepath: str, page_str: str):
+def cmd_split(filepath: str, page_str: str, merge_output: bool):
     if not os.path.isfile(filepath):
         die(f"File not found: {filepath}")
 
@@ -119,27 +122,45 @@ def cmd_split(filepath: str, page_str: str):
     except Exception as e:
         die(f"Failed to read PDF: {e}")
 
-    log(f"split: {filepath} ({total} pages), range='{page_str}'")
+    log(f"split: {filepath} ({total} pages), range='{page_str}', merge={merge_output}")
 
     pages = parse_page_range(page_str, total)
     if not pages:
         die("No valid pages selected")
 
-    log(f"extracting pages (0-indexed): {pages}")
+    log(f"extracting 0-indexed pages: {pages}")
 
-    writer = PdfWriter()
-    for i in pages:
-        writer.add_page(reader.pages[i])
+    if merge_output:
+        # All selected pages into one PDF
+        writer = PdfWriter()
+        for i in pages:
+            writer.add_page(reader.pages[i])
 
-    output_path = os.path.join(LOG_DIR, f"{uuid.uuid4()}.pdf")
-    try:
-        with open(output_path, "wb") as f:
-            writer.write(f)
-    except Exception as e:
-        die(f"Failed to write output: {e}")
+        output_path = os.path.join(LOG_DIR, f"{uuid.uuid4()}.pdf")
+        try:
+            with open(output_path, "wb") as f:
+                writer.write(f)
+        except Exception as e:
+            die(f"Failed to write output: {e}")
 
-    log(f"split done: {output_path}")
-    ok(path=output_path, extracted=len(pages), total=total)
+        log(f"split (single) done: {output_path}")
+        ok(path=output_path, mode="single", extracted=len(pages))
+    else:
+        # One PDF per page, zipped
+        zip_path = os.path.join(LOG_DIR, f"{uuid.uuid4()}.zip")
+        try:
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                for i in pages:
+                    writer = PdfWriter()
+                    writer.add_page(reader.pages[i])
+                    buf = io.BytesIO()
+                    writer.write(buf)
+                    zf.writestr(f"page_{i + 1:04d}.pdf", buf.getvalue())
+        except Exception as e:
+            die(f"Failed to create zip: {e}")
+
+        log(f"split (multi) done: {zip_path}")
+        ok(path=zip_path, mode="multi", extracted=len(pages))
 
 
 def main():
@@ -158,9 +179,10 @@ def main():
             die("info requires a file path")
         cmd_info(args[1])
     elif cmd == "split":
-        if len(args) < 3:
-            die("split requires: split <file> <page_range>")
-        cmd_split(args[1], args[2])
+        if len(args) < 4:
+            die("split requires: split <file> <page_range> <merge:true|false>")
+        merge_output = args[3].lower() == "true"
+        cmd_split(args[1], args[2], merge_output)
     else:
         die(f"Unknown subcommand: {cmd}")
 
