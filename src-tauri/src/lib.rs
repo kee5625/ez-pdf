@@ -22,11 +22,17 @@ async fn run_sidecar(app: &AppHandle, args: &[&str]) -> Result<serde_json::Value
     let output = app
         .shell()
         .sidecar("merger")
-        .map_err(|e| { log_debug(&format!("sidecar lookup failed: {e}")); e.to_string() })?
+        .map_err(|e| {
+            log_debug(&format!("sidecar lookup failed: {e}"));
+            e.to_string()
+        })?
         .args(args)
         .output()
         .await
-        .map_err(|e| { log_debug(&format!("sidecar spawn failed: {e}")); e.to_string() })?;
+        .map_err(|e| {
+            log_debug(&format!("sidecar spawn failed: {e}"));
+            e.to_string()
+        })?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -56,7 +62,10 @@ async fn run_sidecar(app: &AppHandle, args: &[&str]) -> Result<serde_json::Value
         .map_err(|e| format!("Bad sidecar response ({:?}): {}", stdout.trim(), e))?;
 
     if json["status"] == "error" {
-        return Err(json["message"].as_str().unwrap_or("Unknown error").to_string());
+        return Err(json["message"]
+            .as_str()
+            .unwrap_or("Unknown error")
+            .to_string());
     }
 
     Ok(json)
@@ -72,30 +81,41 @@ async fn merge_pdfs(app: AppHandle, files: Vec<String>) -> Result<String, String
     args.extend(file_refs.iter());
 
     let json = run_sidecar(&app, &args).await?;
-    json["path"].as_str().map(|s| s.to_string())
+    json["path"]
+        .as_str()
+        .map(|s| s.to_string())
         .ok_or_else(|| "No output path returned".to_string())
 }
 
 #[tauri::command]
 async fn get_page_count(app: AppHandle, file: String) -> Result<u32, String> {
     let json = run_sidecar(&app, &["info", &file]).await?;
-    json["pages"].as_u64()
+    json["pages"]
+        .as_u64()
         .map(|n| n as u32)
         .ok_or_else(|| "No page count returned".to_string())
 }
 
 #[tauri::command]
-async fn split_pdf(app: AppHandle, file: String, pages: String) -> Result<String, String> {
+async fn split_pdf(
+    app: AppHandle,
+    file: String,
+    pages: String,
+    merge_pages: bool,
+) -> Result<serde_json::Value, String> {
     if pages.trim().is_empty() {
         return Err("No pages specified".to_string());
     }
-    let json = run_sidecar(&app, &["split", &file, &pages]).await?;
-    json["path"].as_str().map(|s| s.to_string())
-        .ok_or_else(|| "No output path returned".to_string())
+    let merge_str = if merge_pages { "true" } else { "false" };
+    run_sidecar(&app, &["split", &file, &pages, merge_str]).await
 }
 
 #[tauri::command]
-async fn download_pdf(app: AppHandle, path: String) -> Result<String, String> {
+async fn download_file(
+    app: AppHandle,
+    path: String,
+    filename: String,
+) -> Result<String, String> {
     use std::path::Path;
 
     let src = Path::new(&path);
@@ -108,10 +128,7 @@ async fn download_pdf(app: AppHandle, path: String) -> Result<String, String> {
         .download_dir()
         .map_err(|e: tauri::Error| e.to_string())?;
 
-    let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
-    let filename = format!("merged_{}.pdf", timestamp);
     let dest = downloads.join(&filename);
-
     std::fs::copy(src, &dest).map_err(|e| format!("Copy failed: {}", e))?;
     log_debug(&format!("downloaded to: {:?}", dest));
     Ok(filename)
@@ -126,7 +143,7 @@ pub fn run() {
             merge_pdfs,
             get_page_count,
             split_pdf,
-            download_pdf
+            download_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
