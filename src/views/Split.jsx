@@ -238,9 +238,8 @@ export default function Split({ onBack }) {
         )}
       </div>
 
-      {pageCount !== null && status !== "done" && (
-        <>
-          <label className="merge-checkbox-row">
+      {pageCount !== null && status !== "done" && activeTab === "pages" && (
+        <label className="merge-checkbox-row">
             <button
               type="button"
               className="checkbox-btn"
@@ -256,18 +255,19 @@ export default function Split({ onBack }) {
             <span className="merge-hint">
               {mergeOutput ? "→ one .pdf" : "→ .zip of individual pages"}
             </span>
-          </label>
+        </label>
+      )}
 
-          <button
-            onClick={split}
-            className="btn-merge"
-            disabled={busy || !isReady()}
-          >
-            {status === "splitting"
-              ? <span className="spinner-row"><Loader2 size={15} className="spin" /> Extracting…</span>
-              : "Extract Pages"}
-          </button>
-        </>
+      {pageCount !== null && status !== "done" && (
+        <button
+          onClick={split}
+          className="btn-merge"
+          disabled={busy || !isReady()}
+        >
+          {status === "splitting"
+            ? <span className="spinner-row"><Loader2 size={15} className="spin" /> Extracting…</span>
+            : "Extract Pages"}
+        </button>
       )}
 
       {status === "error" && (
