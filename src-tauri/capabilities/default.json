@@ -1,0 +1,20 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability for PDF Merger",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "merger",
+          "sidecar": true,
+          "args": true
+        }
+      ]
+    },
+    "dialog:allow-open"
+  ]
+}
