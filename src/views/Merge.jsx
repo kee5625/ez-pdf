@@ -60,7 +60,7 @@ export default function Merge({ onBack }) {
   }
 
   async function download() {
-    const filename = `ez-pdf_merged-${files.length}files_${timestamp()}.pdf`;
+    const filename = `ezpdf_merged_${timestamp()}.pdf`;
     try {
       const name = await invoke("download_file", { path: outputPath, filename });
       setDownloadedName(name);
