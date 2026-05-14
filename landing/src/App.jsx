@@ -34,7 +34,10 @@ export default function App() {
     <div className="page">
 
       <nav className="nav">
-        <span className="nav-logo">⬡ EZ-PDF</span>
+        <span className="nav-logo">
+          <img src="/logo.png" alt="" className="nav-logo-img" />
+          EZ-PDF
+        </span>
         <div className="nav-links">
           <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="nav-link">
             <ExternalLink size={15} /> GitHub

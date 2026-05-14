@@ -4,7 +4,7 @@ export default function Home({ onSelect }) {
   return (
     <div className="container">
       <div className="header">
-        <div className="logo">⬡</div>
+        <img src="/logo.png" alt="EZ-PDF" className="logo" />
         <h1>EZ-pdf</h1>
         <p className="subtitle">Fully Offline PDF Editor</p>
       </div>
