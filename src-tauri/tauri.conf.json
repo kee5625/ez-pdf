@@ -1,5 +1,5 @@
 {
-  "productName": "PDF Merger",
+  "productName": "EZ-PDF",
   "version": "0.1.0",
   "identifier": "com.pdfmerger.app",
   "build": {
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "PDF Merger",
+        "title": "EZ-PDF",
         "width": 600,
         "height": 720,
         "resizable": true,
