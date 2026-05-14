@@ -2,7 +2,7 @@ import { Shield, Combine, Scissors, Download, MonitorDown, ExternalLink } from "
 import "./App.css";
 
 const GITHUB_URL = "https://github.com/kee5625/ez-pdf";
-const DOWNLOAD_URL = "https://github.com/kee5625/ez-pdf/releases/download/v1.0.0/PDF.Merger_0.1.0_x64-setup.exe";
+const DOWNLOAD_URL = "https://github.com/kee5625/ez-pdf/releases/download/v1.0.0/EZ-PDF_0.1.0_x64-setup.exe";
 
 const screenshots = [
   { src: "/home.png",        caption: "Home screen"                     },
